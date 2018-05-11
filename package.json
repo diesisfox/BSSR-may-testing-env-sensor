@@ -1,0 +1,19 @@
+{
+  "name": "bssr-may-testing-env-sensor",
+  "version": "0.1.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diesisfox/BSSR-may-testing-env-sensor.git"
+  },
+  "author": "Blue Sky Solar Racing",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/diesisfox/BSSR-may-testing-env-sensor/issues"
+  },
+  "homepage": "https://github.com/diesisfox/BSSR-may-testing-env-sensor#readme"
+}
