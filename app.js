@@ -19,8 +19,9 @@ const port = new SerialPort(portName,{
 port.on('open', onOpen);
 port.on('data', onData);
 
+
 function onOpen(){
-    console.log("Begin Data Collection");
+    console.log("Begin Data Collection"); 
 }
 
 function onData(data){
