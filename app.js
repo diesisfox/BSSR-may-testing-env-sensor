@@ -7,8 +7,13 @@ const SerialPort = require('serialport');
 //specifying the COM port through command line, right after the "npm start"
 const portName = process.argv[2];
 
+require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
+//need this install 
+
 const port = new SerialPort(portName,{
-    baudRate: 9600
+    parser:serialport.parsers.readline("\r\n")
+
+    //we dont need to change the baud rate
 });
 
 port.on('open', onOpen);
@@ -19,8 +24,9 @@ function onOpen(){
 }
 
 function onData(data){
-    data.pipe(parser);
+    console.log("on Data " + data);
 }
+
 
 const fs = require('fs');
 const stream = require('stream');
