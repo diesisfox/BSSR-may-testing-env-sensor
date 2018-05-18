@@ -9,17 +9,25 @@ const port = new SerialPort(portName,{
 });
 */
 
-const fs = ('fs');
+const fs = require('fs');
 const stream = require('stream');
 const util = require('util');
-
-const log_file = fs.createWriteStream(__dirname + '/dataTEST.log', {flags : 'w'});
+const Buffer = require('buffer').Buffer;
 const Transform = stream.Transform;
+
 const parser = new Transform();
+const log_file = fs.createWriteStream(__dirname + '/dataTEST.log', {flags : 'w'});
 
 parser._transform = function(data, encoding, done){
-    const timeStamp = Date.now();
-    log_file.write(timeStamp.toString() + util.format(data) + '\n');
+    const timeStamp = new Date();
+    const month = timeStamp.getMonth() + 1; //because the month logs from 0-11
+
+    const IntData = Buffer.from(data, 'utf8');
+
+    log_file.write(
+        '{ TimeStamp [' + timeStamp.getFullYear() + ':' + month + ':' + timeStamp.getDate()+ '][' + timeStamp.getHours() +' h: ' + timeStamp.getMinutes() + ' min: ' + timeStamp.getSeconds() + ' s: ' + timeStamp.getMilliseconds() + ' ms]\n' +
+        ' Data:' + IntData + ' },\n'
+    );
     parser.pipe(log_file);
     done();
 };
@@ -30,3 +38,4 @@ process.stdin
 
 //in the case of error
 process.stdout.on('error', process.exit);
+
