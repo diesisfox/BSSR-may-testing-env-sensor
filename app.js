@@ -8,11 +8,18 @@ const fs = require('fs');
 const stream = require('stream');
 const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
+require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
+ 
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
 const portName = process.argv[2];
 const sensorName = process.argv[3];
-const port = new SerialPort(portName,{});
+
+//this is required for logging files on console
+const port = new SerialPort(portName,{
+    parser:SerialPort.parsers.readline("\r\n") 
+});
+
 
 //specifying what happens when the port opens. Creating the file to log in automatically
 port.on('open', function(){
