@@ -2,21 +2,29 @@
 //Made for May testing
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
-
+//
 
 const fs = require('fs');
 const stream = require('stream');
 const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
 
-//specifying the COM port through command line, right after the "npm start"
+//specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
 const portName = process.argv[2];
+const sensorName = process.argv[3];
 const port = new SerialPort(portName,{});
+
+//specifying what happens when the port opens. Creating the file to log in automatically
+port.on('open', function(){
+    console.log('Beginning Data Collection:');
+    const fileName = Date().now.toString() + sensorName.toString();
+    fs.writeFile(__dirname + fileName);
+});
 
 //defining the log file as well as the parser
 const Transform = stream.Transform;
 const parser = new Transform();
-const log_file = fs.createWriteStream(__dirname + '/dataTEST.log', {flags : 'w'});
+const log_file = fs.createWriteStream(__dirname + fileName, {flags : 'w'});
 
 parser._transform = function(data, encoding, done){
     const timeStamp = new Date();
@@ -32,17 +40,13 @@ parser._transform = function(data, encoding, done){
     done();
 };
 
-//creating a pipe and having listening events for the port
+//creating a pipe and having listening events from the port
 port.pipe(parser);
-
-port.on('open', function(){
-    console.log('Beginning Data Collection:');
-});
 
 port.on('data', function(data){
     port.write(data);
+    console.log(data);
 });
-
 
 /*
 //pipes standard input from terminal to the log file
