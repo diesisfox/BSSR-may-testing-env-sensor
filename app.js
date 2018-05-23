@@ -3,13 +3,13 @@
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
 //
-
 const fs = require('fs');
 const stream = require('stream');
+const util = require('util');
 const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
- 
+const readline = require ('readline'); 
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
 const portName = process.argv[2];
@@ -20,7 +20,20 @@ const port = new SerialPort(portName,{
     parser:SerialPort.parsers.readline("\r\n") 
 });
 
+var externalFile;
 
+//looking for existing log file directory
+//if not found, making a new directory with date and time in the name
+fs.stat(`./logs`, function(err,stat){
+	if(stat && stat.isDirectory()){
+		externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`);
+	}else{
+		fs.mkdir('./logs',function(e){
+			if(e) log(e);
+			externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`);
+		})
+	}
+})
 //specifying what happens when the port opens. Creating the file to log in automatically
 port.on('open', function(){
     console.log('Beginning Data Collection:');
@@ -28,6 +41,12 @@ port.on('open', function(){
     fs.writeFile(__dirname + fileName);
 });
 
+
+
+
+
+
+/*no need for all this
 //defining the log file as well as the parser
 const Transform = stream.Transform;
 const parser = new Transform();
@@ -63,6 +82,7 @@ process.stdin
 //in the case of error
 process.stdout.on('error', process.exit);
 */
+
 
 //flush to save to memory
 //fix the problem with pipe
