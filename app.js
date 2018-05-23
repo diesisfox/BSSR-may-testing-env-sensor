@@ -2,38 +2,19 @@
 //Made for May testing
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
-//
-const SerialPort = require('serialport');
-//specifying the COM port through command line, right after the "npm start"
-const portName = process.argv[2];
-
-require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
-//need this install 
-
-const port = new SerialPort(portName,{
-    parser:serialport.parsers.readline("\r\n")
-
-    //we dont need to change the baud rate
-});
-
-port.on('open', onOpen);
-port.on('data', onData);
-
-
-function onOpen(){
-    console.log("Begin Data Collection"); 
-}
-
-function onData(data){
-    console.log("on Data " + data);
-}
 
 
 const fs = require('fs');
 const stream = require('stream');
 const Buffer = require('buffer').Buffer;
-const Transform = stream.Transform;
+const SerialPort = require('serialport');
 
+//specifying the COM port through command line, right after the "npm start"
+const portName = process.argv[2];
+const port = new SerialPort(portName,{});
+
+//defining the log file as well as the parser
+const Transform = stream.Transform;
 const parser = new Transform();
 const log_file = fs.createWriteStream(__dirname + '/dataTEST.log', {flags : 'w'});
 
@@ -51,6 +32,18 @@ parser._transform = function(data, encoding, done){
     done();
 };
 
+//creating a pipe and having listening events for the port
+port.pipe(parser);
+
+port.on('open', function(){
+    console.log('Beginning Data Collection:');
+});
+
+port.on('data', function(data){
+    port.write(data);
+});
+
+
 /*
 //pipes standard input from terminal to the log file
 process.stdin
@@ -59,3 +52,8 @@ process.stdin
 //in the case of error
 process.stdout.on('error', process.exit);
 */
+
+//flush to save to memory
+//fix the problem with pipe
+//create menu to navigate to the desired port
+//auto generate files based off of time, date, and user entry
