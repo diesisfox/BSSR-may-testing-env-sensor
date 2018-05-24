@@ -1,5 +1,5 @@
 //
-//Made for May testing
+//Made for May testing (Async Version: (2) Ports Listing)
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
 //
@@ -22,21 +22,38 @@ const port = new SerialPort(portName,{
     parser:SerialPort.parsers.readline("\r\n") 
 });
 
-var externalFile; 
+var externalFile;
  
 //looking for existing log file directory 
 //if not found, making a new directory with date and time in the name 
 fs.stat(`./logs`, function(err,stat){ 
   if(stat && stat.isDirectory()){ 
+    console.log("Creating new .log file . . . \n");
     externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
+    console.log("File created\n");
   }else{ 
+    console.log("Creating a new directory . . .\n");
     fs.mkdir('./logs',function(e){ 
       if(e) log(e); 
-      externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
+      console.log("Creating .log file . . .\n");
+      externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`);
+      console.log("File created\n"); 
     }) 
   } 
 }) 
 
+//listing all the serial ports connected to the device
+SerialPort.list(function(err, connectedPorts){
+    if (connectedPorts.length){
+        console.log("Following ports are connected to this device\n\nSelect a port to continue:\n");
+        var i = 0;
+
+        for (i = 0; i < connectedPorts.length; i++){
+            console.log("(" + i + ") " + connectedPorts[i].comName + " Manufactured By: " + connectedPorts[i].manufacturer + "\n");
+        }
+
+    }
+})
 //specifying what happens when the port opens. Creating the file to log in automatically
 port.on('open', function(){
     console.log('Beginning Data Collection:');
