@@ -11,6 +11,7 @@ const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
 const readline = require ('readline');  
+const path = require('path');
 
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
@@ -34,21 +35,18 @@ fs.stat(`./logs`, function(err,stat){
   if(stat && stat.isDirectory()){ 
     console.log("Directory Found\n");
     console.log("Creating new .log file . . . \n");
-    externalFile = fs.createWriteStream(__dirname + './logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log'); 
+    externalFile = path.resolve(__dirname, './logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log'); 
+    
     console.log("File created\n");
-
-    //DEBUG MODE
-    externalFile.writeFile('Testing .log file creation . . . TEHEE');
-
-
+    
   }else{ 
     console.log("No directory found\n");
     console.log("Creating a new directory . . .\n");
     fs.mkdir('./logs',function(e){ 
       if(e) log(e); 
       console.log("Creating .log file . . .\n");
-      externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log');
-      
+      externalFile = path.resolve(__dirname, './logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log'); 
+    
       console.log("File created\n"); 
     }) 
   } 
@@ -85,9 +83,9 @@ function choosePort(){
 		}else{
             console.log("Port selection valid. Connection successful.\n");
 			radioPort = new SerialPort(radioPort[res].comName,{
-				baudRate:115200
+				baudRate:9600 // NO 115200 
             });
-            console.log("Port baudrate set to 115200.\n");
+            console.log("Port baudrate set to 9600.\n");
 
             
             //starting reading from the port
@@ -96,13 +94,18 @@ function choosePort(){
             });
 
             radioPort.on('data', function(data){
-                console.log(data);
+                console.log(data.toString());
             });
 
 		}
 	});
 }
 
+
+//REMAINING TASKS:
+//GETTING LOGGING ON FILE REMAINS
+//UPDATING IF-ELSE
+////////////////////////////////////////////////////////////////////////////////////////
 
 // //specifying what happens when the port opens. Creating the file to log in automatically
 // port.on('open', function(){
