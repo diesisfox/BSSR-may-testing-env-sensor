@@ -11,6 +11,7 @@ const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
 const readline = require ('readline');  
+const CanParser = require('./canParser.js');
 
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
@@ -24,6 +25,7 @@ const sensorName = process.argv[3];
 
 var externalFile;
 var creationDate = new Date();
+var radioPort;
 
 console.log("Searching for existing directories . . .\n");
 
@@ -31,11 +33,13 @@ console.log("Searching for existing directories . . .\n");
 //if not found, making a new directory with date and time in the name 
 fs.stat(`./logs`, function(err,stat){ 
   if(stat && stat.isDirectory()){ 
-    console.log("Directory Found\nCreating new .log file . . . \n");
+    console.log("Directory Found\n");
+    console.log("Creating new .log file . . . \n");
     externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth+1) + creationDate.getDate() + '- hr:' + creationDate.getHours() + 'min: ' + creationDate.getMinutes() + ' sec: ' + creationDate.getSeconds() + ' ms: ' + creationDate.getMilliseconds() + '.log'); 
     console.log("File created\n");
   }else{ 
-    console.log("No directory found\nCreating a new directory . . .\n");
+    console.log("No directory found\n");
+    console.log("Creating a new directory . . .\n");
     fs.mkdir('./logs',function(e){ 
       if(e) log(e); 
       console.log("Creating .log file . . .\n");
@@ -48,16 +52,43 @@ fs.stat(`./logs`, function(err,stat){
 //listing all the serial ports connected to the device
 SerialPort.list(function(err, connectedPorts){
     if (connectedPorts.length){
+        radioPort = connectedPorts; //for use outside this block
         console.log("Following ports are connected to this device\n\nSelect a port to continue:\n");
         var i = 0;
 
         for (i = 0; i < connectedPorts.length; i++){
             console.log("(" + i + ") " + connectedPorts[i].comName + " Manufactured By: " + connectedPorts[i].manufacturer + "\n");
         }
+        choosePort();
     } else {
         console.log("There are no ports connected to your device. Check if ports are properly connected and try again.\n")
     }
 })
+
+//enabling reading streams
+const stdio = readline.createInterface({
+	input: process.stdin, //reading location
+	output: process.stdout //writing location
+});
+
+function choosePort(){
+	stdio.question('> ', function(res){ //response from user
+		res = parseInt(res);
+		if(Number.isNaN(res) || res >= radioPort.length || res<0){
+			console.log("ERROR: An error occured while connecting to the port you selected. Please check connection. Trying to reconnect . . .\n");
+			choosePort();
+		}else{
+            console.log("Port selection valid. Connection successful.\n");
+			radioPort = new SerialPort(radioPort[res].comName,{
+				baudRate:115200
+            });
+            console.log("Port baudrate set to 115200.\n");
+			canParser = new CanParser();
+			radioPort.pipe(canParser);
+		}
+	})
+}
+
 // //specifying what happens when the port opens. Creating the file to log in automatically
 // port.on('open', function(){
 //     console.log('Beginning Data Collection:');
