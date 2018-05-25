@@ -1,5 +1,5 @@
 //
-//Made for May testing (Async Version: (2) Ports Listing)
+//Made for May testing (Async Version: (3) File Creation Date Format Fixed)
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
 //
@@ -18,25 +18,26 @@ const portName = process.argv[2];
 const sensorName = process.argv[3];
 
 //this is required for logging files on console
-const port = new SerialPort(portName,{
-    parser:SerialPort.parsers.readline("\r\n") 
-});
+// const port = new SerialPort(portName,{
+//     parser:SerialPort.parsers.readline("\r\n") 
+// });
 
 var externalFile;
+var creationDate = new Date();
  
 //looking for existing log file directory 
 //if not found, making a new directory with date and time in the name 
 fs.stat(`./logs`, function(err,stat){ 
   if(stat && stat.isDirectory()){ 
     console.log("Creating new .log file . . . \n");
-    externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
+    externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth+1) + creationDate.getDate() + '- hr:' + creationDate.getHours() + 'min: ' + creationDate.getMinutes() + ' sec: ' + creationDate.getSeconds() + ' ms: ' + creationDate.getMilliseconds() + '.log'); 
     console.log("File created\n");
   }else{ 
     console.log("Creating a new directory . . .\n");
     fs.mkdir('./logs',function(e){ 
       if(e) log(e); 
       console.log("Creating .log file . . .\n");
-      externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`);
+      externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth+1) + creationDate.getDate() + '- hr:' + creationDate.getHours() + 'min: ' + creationDate.getMinutes() + ' sec: ' + creationDate.getSeconds() + ' ms: ' + creationDate.getMilliseconds() + '.log'); 
       console.log("File created\n"); 
     }) 
   } 
@@ -54,12 +55,12 @@ SerialPort.list(function(err, connectedPorts){
 
     }
 })
-//specifying what happens when the port opens. Creating the file to log in automatically
-port.on('open', function(){
-    console.log('Beginning Data Collection:');
-    const fileName = Date().now.toString() + sensorName.toString();
-    fs.writeFile(__dirname + fileName);
-});
+// //specifying what happens when the port opens. Creating the file to log in automatically
+// port.on('open', function(){
+//     console.log('Beginning Data Collection:');
+//     const fileName = Date().now.toString() + sensorName.toString();
+//     fs.writeFile(__dirname + fileName);
+// });
 
  
  
