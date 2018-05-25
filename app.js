@@ -11,7 +11,6 @@ const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
 require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
 const readline = require ('readline');  
-const CanParser = require('./canParser.js');
 
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
@@ -23,7 +22,7 @@ const sensorName = process.argv[3];
 //     parser:SerialPort.parsers.readline("\r\n") 
 // });
 
-var externalFile;
+var externalFile; //will store details about the output file
 var creationDate = new Date();
 var radioPort;
 
@@ -35,15 +34,21 @@ fs.stat(`./logs`, function(err,stat){
   if(stat && stat.isDirectory()){ 
     console.log("Directory Found\n");
     console.log("Creating new .log file . . . \n");
-    externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth+1) + creationDate.getDate() + '- hr:' + creationDate.getHours() + 'min: ' + creationDate.getMinutes() + ' sec: ' + creationDate.getSeconds() + ' ms: ' + creationDate.getMilliseconds() + '.log'); 
+    externalFile = fs.createWriteStream(__dirname + './logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log'); 
     console.log("File created\n");
+
+    //DEBUG MODE
+    externalFile.writeFile('Testing .log file creation . . . TEHEE');
+
+
   }else{ 
     console.log("No directory found\n");
     console.log("Creating a new directory . . .\n");
     fs.mkdir('./logs',function(e){ 
       if(e) log(e); 
       console.log("Creating .log file . . .\n");
-      externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth+1) + creationDate.getDate() + '- hr:' + creationDate.getHours() + 'min: ' + creationDate.getMinutes() + ' sec: ' + creationDate.getSeconds() + ' ms: ' + creationDate.getMilliseconds() + '.log'); 
+      externalFile = fs.createWriteStream('./logs/' + creationDate.getFullYear() + (creationDate.getMonth()+1) + creationDate.getDate() + '-hr:' + creationDate.getHours() + 'min:' + creationDate.getMinutes() + 'sec:' + creationDate.getSeconds() + 'ms:' + creationDate.getMilliseconds() + '.log');
+      
       console.log("File created\n"); 
     }) 
   } 
@@ -95,7 +100,7 @@ function choosePort(){
             });
 
 		}
-	})
+	});
 }
 
 
