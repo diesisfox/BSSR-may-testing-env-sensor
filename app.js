@@ -83,11 +83,21 @@ function choosePort(){
 				baudRate:115200
             });
             console.log("Port baudrate set to 115200.\n");
-			canParser = new CanParser();
-			radioPort.pipe(canParser);
+
+            
+            //starting reading from the port
+            radioPort.on('open', function(){
+                console.log("Reading data from port . . .\n");
+            });
+
+            radioPort.on('data', function(data){
+                console.log(data);
+            });
+
 		}
 	})
 }
+
 
 // //specifying what happens when the port opens. Creating the file to log in automatically
 // port.on('open', function(){
