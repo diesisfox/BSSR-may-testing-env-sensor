@@ -5,12 +5,13 @@
 
 //requiring all the modules required
 const fs = require('fs');
-const util = require('util');
+const util = require('util'); 
 const stream = require('stream');
 const Buffer = require('buffer').Buffer;
 const SerialPort = require('serialport');
-require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
-const readline = require ('readline');
+require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
+const readline = require ('readline');  
+
 
 //specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
 const portName = process.argv[2];
@@ -18,18 +19,23 @@ const sensorName = process.argv[3];
 
 //this is required for logging files on console
 const port = new SerialPort(portName,{
-    parser:SerialPort.parsers.readline("\r\n") //All this does is to add a new line whenever data is logged. Not required for logging in console
+    parser:SerialPort.parsers.readline("\r\n") 
 });
 
-/*NOTE:
-    This is the idea I had before. I would initialize the file in this port.on clause. meaning that each time the application
-    was rerun, a new file would be made in the current directory. We then use fileName to create the directory.
-
-    Also Japtegh, check if the code below works. The prior code had an issue in that would run continuously creating files over
-    and over again. Put the entire code under the port.on so that it only changed upon the code starting
-*/
-
-var externalFile;
+var externalFile; 
+ 
+//looking for existing log file directory 
+//if not found, making a new directory with date and time in the name 
+fs.stat(`./logs`, function(err,stat){ 
+  if(stat && stat.isDirectory()){ 
+    externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
+  }else{ 
+    fs.mkdir('./logs',function(e){ 
+      if(e) log(e); 
+      externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
+    }) 
+  } 
+}) 
 
 //specifying what happens when the port opens. Creating the file to log in automatically
 port.on('open', function(){
@@ -48,7 +54,13 @@ port.on('open', function(){
     });
 });
 
-//defining the parser using transform. It's basically a tool for logging the data by transforming it to the desired form.
+ 
+ 
+ 
+ 
+ 
+/*no need for all this 
+//defining the log file as well as the parser
 const Transform = stream.Transform;
 const parser = new Transform();
 
