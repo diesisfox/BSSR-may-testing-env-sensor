@@ -80,25 +80,17 @@ function choosePort(){
             });
 
             radioPort.on('data', function(data){
+                //log to console
                 console.log(data.toString());
-                logStream.write(data.toString());
+
+                const timeStamp = new Date();
+                const month = timeStamp.getMonth() + 1; //because the month logs from 0-11
+
+                logStream.write(
+                    '{ TimeStamp [' + timeStamp.getFullYear() + ':' + month + ':' + timeStamp.getDate()+ '][' + timeStamp.getHours() +' h: ' + timeStamp.getMinutes() + ' min: ' + timeStamp.getSeconds() + ' s: ' + timeStamp.getMilliseconds() + ' ms]\n' +
+                    ' Data:' + data.toString() + ' },\n'
+                );
             });
         }
     });
 }
-
-/*
-parser._transform = function(data, encoding, done){
-    const timeStamp = new Date();
-    const month = timeStamp.getMonth() + 1; //because the month logs from 0-11
-
-    const IntData = Buffer.from(data, 'utf8');
-
-    log_file.write(
-        '{ TimeStamp [' + timeStamp.getFullYear() + ':' + month + ':' + timeStamp.getDate()+ '][' + timeStamp.getHours() +' h: ' + timeStamp.getMinutes() + ' min: ' + timeStamp.getSeconds() + ' s: ' + timeStamp.getMilliseconds() + ' ms]\n' +
-        ' Data:' + IntData + ' },\n'
-    );
-    parser.pipe(log_file);
-    done();
-};
-*/
