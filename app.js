@@ -3,95 +3,102 @@
 //Simple application that collects data through a Serial Port and logs it in a log file
 //
 
-//requiring all the modules required
+//Requiring necessary modules
 const fs = require('fs');
-const util = require('util'); 
+const SerialPort = require('serialport');
+require('console-stamp')(console, { pattern: 'HH:MM:ss.l' });
+const readline = require ('readline');
+const path = require('path');
+
+/*
+const util = require('util');
 const stream = require('stream');
 const Buffer = require('buffer').Buffer;
-const SerialPort = require('serialport');
-require('console-stamp')(console, { pattern: 'HH:MM:ss.l' }); 
-const readline = require ('readline');  
+*/
 
+//creates directory for data collection
+console.log("Searching for existing directories . . .\n");
 
-//specifying the port address and then the sensorName(for the sake of logging files), right after the "npm start"
-const portName = process.argv[2];
-const sensorName = process.argv[3];
-
-//this is required for logging files on console
-const port = new SerialPort(portName,{
-    parser:SerialPort.parsers.readline("\r\n") 
+fs.stat(`./Race_Data_Logs`, function(err,stat){
+    if(stat && stat.isDirectory()){
+        console.log("Directory already exists, creating new log file\n");
+    }else{
+        console.log("No directory found, creating new directory\n");
+        fs.mkdir('./Race_Data_Logs',function(){
+            console.log("Creating log file in Race_Data_Logs directory\n");
+        })
+    }
 });
 
-var externalFile; 
- 
-//looking for existing log file directory 
-//if not found, making a new directory with date and time in the name 
-fs.stat(`./logs`, function(err,stat){ 
-  if(stat && stat.isDirectory()){ 
-    externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
-  }else{ 
-    fs.mkdir('./logs',function(e){ 
-      if(e) log(e); 
-      externalFile = fs.createWriteStream(`./logs/${dateformat(new Date(),'mmddyyyy-HHMMss')}.log`); 
-    }) 
-  } 
-}) 
+//creates log files in the directory
+const creationDate = new Date();
+const externalFileName = 'month' + (creationDate.getMonth()+1).toString() + '-day' + creationDate.getDate() + '-hr' + creationDate.getHours() + '-min' + creationDate.getMinutes() + '-sec' + creationDate.getSeconds() + '-ms' + creationDate.getMilliseconds() + '.log';
+const logStream = fs.createWriteStream('./Race_Data_Logs/log-' + externalFileName);
 
-//specifying what happens when the port opens. Creating the file to log in automatically
-port.on('open', function(){
-    console.log('Beginning Data Collection:');
+//creating port selection and piping data to console and data files
+let radioPort;
 
-    //Making a new directory with date and time in the name
-    fs.stat(`./logs`, function(err,stat){
-        if(stat && stat.isDirectory()){
-            externalFile = fs.createWriteStream(__dirname + Date.now().toString() + '.log');
+//enabling reading streams
+const stdio = readline.createInterface({
+    input: process.stdin, //reading location
+    output: process.stdout //writing location
+});
+
+//Listing serial ports to the terminal and allowing for selection
+SerialPort.list(function(err, connectedPorts){
+    if (connectedPorts.length){
+        radioPort = connectedPorts; //for use outside this block
+        console.log("Following ports are connected to this device\n\nSelect a port to continue:\n");
+
+        for (let i = 0; i < connectedPorts.length; i++){
+            console.log("(" + i + ") " + connectedPorts[i].comName + " Manufactured By: " + connectedPorts[i].manufacturer + "\n");
+        }
+        choosePort();
+    } else {
+        console.log("There are no ports connected to your device. Check if ports are properly connected and try again.\n")
+    }
+});
+
+function choosePort(){
+    stdio.question('> ', function(res){ //response from user
+        res = parseInt(res);
+        if(Number.isNaN(res) || res >= radioPort.length || res<0){
+            console.log("ERROR: An error occurred while connecting to the port you selected. Please check connection. Trying to reconnect . . .\n");
+            choosePort();
         }else{
-            fs.mkdir('./logs',function(e){
-                if(e) log(e);
-                externalFile = fs.createWriteStream(__dirname + Date.now().toString() + '.log');
-            })
+            console.log("Port selection valid. Connection successful.\n");
+
+            radioPort = new SerialPort(radioPort[res].comName,{
+                baudRate:9600
+            });
+
+            console.log("Port baud rate set to 9600.\n");
+
+            //reading from the port
+            radioPort.on('open', function(){
+                console.log("Reading data from port . . .\n");
+            });
+
+            radioPort.on('data', function(data){
+                console.log(data.toString());
+                logStream.write(data.toString());
+            });
         }
     });
-});
+}
 
- 
- 
- 
- 
- 
-/*no need for all this 
-//defining the log file as well as the parser
-const Transform = stream.Transform;
-const parser = new Transform();
-
-const log_file = fs.createWriteStream(__dirname + fileName, {flags : 'w'}); //creating the directory to create the file in
-
+/*
 parser._transform = function(data, encoding, done){
     const timeStamp = new Date();
     const month = timeStamp.getMonth() + 1; //because the month logs from 0-11
-    //converting the data from bugger to integers
+
     const IntData = Buffer.from(data, 'utf8');
 
     log_file.write(
         '{ TimeStamp [' + timeStamp.getFullYear() + ':' + month + ':' + timeStamp.getDate()+ '][' + timeStamp.getHours() +' h: ' + timeStamp.getMinutes() + ' min: ' + timeStamp.getSeconds() + ' s: ' + timeStamp.getMilliseconds() + ' ms]\n' +
         ' Data:' + IntData + ' },\n'
     );
+    parser.pipe(log_file);
     done();
 };
-
-//creating a pipe and having listening events from the port. Connects all the pipes
-port.pipe(parser);
-parser.pipe(log_file);
-
-///How the port behaves upon receiving each data packet
-port.on('data', function(data){
-    //upon receiving data, port writes data to parser, which writes to log_file
-    port.write(data); //not sure if port.write actually writes to the parser any ideas?
-    console.log(data);
-});
-
-
-/* THINGS TO WORK ON:
-    -flush to save to memory, not saving. But if a new file is created each time, it might help
-    -create menu to navigate to the desired port, because finding ports on Linux is a pain in the ass
 */
